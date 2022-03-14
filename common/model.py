@@ -19,13 +19,10 @@ class Model:
     def findByParams(self):
         return 1
 
-    def insert(self, tblName ,param):
-        mParam = ",".join(param.keys())
-        queue = "INSERT INTO "+tblName+" ("")"
-        return 1
-
-maps = {"id": 1, "user": "tuyen", "time": "2022/01/01"}
-#model = Model()
-#print(model.findAll("FACTORY"))
-for key in maps.keys():
-    print(str(maps[key])+ "  -  "+key)
+    def insertTemperature(self ,param):
+        queue = "INSERT INTO `temperature`(`id_factory`, `term_in`, `temp_out`, `humidity_in`, `humidity_out`, `description`) " \
+                "VALUES (%s, %s, %s, %s, %s, %s)"
+        self.cursor.execute(queue, param)
+        self.conn.commit()
+        print("tbl_temperature: ID = "+str(self.cursor.lastrowid))
+        return self.cursor.lastrowid
