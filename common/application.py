@@ -112,13 +112,15 @@ class View(Tk):
         self.title("EHS")
         self.tabControl = Notebook(self)
         self.tabStatistic = Frame(self.tabControl)
-        self.tabInsert = Frame(self.tabControl)
+        self.tabTemp = Frame(self.tabControl)
+        self.tabFactory = Frame(self.tabControl)
         self.tabControl.add(self.tabStatistic, text="Statistic")
-        self.tabControl.add(self.tabInsert, text="Insert")
+        self.tabControl.add(self.tabTemp, text="Temp")
+        self.tabControl.add(self.tabFactory, text="Factory")
         self.tabControl.pack(expand=1, fill="both")
         self.objTemp = ObjectTemp()
         self.createTabList()
-        self.createTabInsert()
+        self.createTabTemp()
 
     def createTabList(self):
         self.tbl = Treeview(self.tabStatistic)
@@ -158,7 +160,9 @@ class View(Tk):
         if self.cbWeather1.instate(['selected']) :
             valWeather += self.cbWeather1.cget("text") + ", "
         if self.cbWeather2.instate(['selected']) :
-            valWeather += self.cbWeather2.cget("text")
+            valWeather += self.cbWeather2.cget("text") + ", "
+        if self.cbWeather3.instate(['selected']) :
+            valWeather += self.cbWeather3.cget("text")
 
         self.objTemp.setWeather(valWeather)
         self.objTemp.setName(self.etFactoryName.get())
@@ -185,46 +189,47 @@ class View(Tk):
         self.model.insertTemperature((1, data['temp']['in'], data['temp']['out'], data['humidity']['in'], data['humidity']['out'], data['weather']))
         return
 
-    def createTabInsert(self):
-        self.lbFactoryName = Label(self.tabInsert, text="Nhà kho số")
-        self.lbWinLevel = Label(self.tabInsert, text="Cấp gió")
-        self.lbWeather = Label(self.tabInsert, text="Thời tiết")
-        self.lbTemp = Label(self.tabInsert, text="Nhiệt độ (T)")
-        self.lbHumidity = Label(self.tabInsert, text="Độ ẩm (RH)")
+    def createTabTemp(self):
+        self.lbFactoryName = Label(self.tabTemp, text="Nhà kho số")
+        self.lbWinLevel = Label(self.tabTemp, text="Cấp gió")
+        self.lbWeather = Label(self.tabTemp, text="Thời tiết")
+        self.lbTemp = Label(self.tabTemp, text="Nhiệt độ")
+        self.lbHumidity = Label(self.tabTemp, text="Độ ẩm")
 
-        self.lbResult = Label(self.tabInsert, text="Không được thông gió", background="orange red", foreground="white", borderwidth=2, relief="ridge", width=15, font=("Arial",20))
+        self.lbResult = Label(self.tabTemp, text="Không được thông gió", background="orange red", foreground="white", borderwidth=2, relief="ridge", width=15, font=("Arial",20))
 
-        self.frameWeather = Frame(self.tabInsert)
+        self.frameWeather = Frame(self.tabTemp)
         self.cbWeather1 = Checkbutton(self.frameWeather, text="Có sương mù", onvalue=1)
         self.cbWeather2 = Checkbutton(self.frameWeather, text="Có mưa", onvalue=2)
+        self.cbWeather3 = Checkbutton(self.frameWeather, text="Có nắng", onvalue=3)
 
-        self.lbIn = Label(self.tabInsert, text="TRONG KHO", font='Arial 15 bold', borderwidth=1, relief="solid")
-        self.lbOut = Label(self.tabInsert, text="NGOÀI KHO", font='Arial 15 bold', borderwidth=1, relief="solid")
-        self.lbTempPoint = Label(self.tabInsert, text="Nhiệt độ điểm sương")
-        self.lbAh = Label(self.tabInsert, text="AH")
-        self.lbHumidityMax = Label(self.tabInsert, text="Độ ẩm cực đại")
+        self.lbIn = Label(self.tabTemp, text="TRONG KHO", font='Arial 15 bold', borderwidth=1, relief="solid")
+        self.lbOut = Label(self.tabTemp, text="NGOÀI KHO", font='Arial 15 bold', borderwidth=1, relief="solid")
+        self.lbTempPoint = Label(self.tabTemp, text="Nhiệt độ điểm sương")
+        self.lbAh = Label(self.tabTemp, text="AH")
+        self.lbHumidityMax = Label(self.tabTemp, text="Độ ẩm cực đại")
 
-        self.lbResTempPointIn = Label(self.tabInsert)
-        self.lbResTempPointOut = Label(self.tabInsert)
-        self.lbResAhIn = Label(self.tabInsert)
-        self.lbResAhOut = Label(self.tabInsert)
-        self.lbResHumidityMaxIn = Label(self.tabInsert)
-        self.lbResHumidityMaxOut = Label(self.tabInsert)
+        self.lbResTempPointIn = Label(self.tabTemp)
+        self.lbResTempPointOut = Label(self.tabTemp)
+        self.lbResAhIn = Label(self.tabTemp)
+        self.lbResAhOut = Label(self.tabTemp)
+        self.lbResHumidityMaxIn = Label(self.tabTemp)
+        self.lbResHumidityMaxOut = Label(self.tabTemp)
         self.OPTIONS = ["0", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10"]
 
-        self.valWinLevel = StringVar(self.tabInsert)
+        self.valWinLevel = StringVar(self.tabTemp)
         self.valWinLevel.set(self.OPTIONS[0])  # default value
-        self.etWinLevel = OptionMenu(self.tabInsert, self.valWinLevel, *self.OPTIONS)
+        self.etWinLevel = OptionMenu(self.tabTemp, self.valWinLevel, *self.OPTIONS)
         self.etWinLevel.config(width=16)
 
         ##Entry
-        self.etFactoryName = Entry(self.tabInsert, width=20)
-        self.etTempIn = Entry(self.tabInsert, width=20)
-        self.etTempOut = Entry(self.tabInsert, width=20)
-        self.etHumidityIn = Entry(self.tabInsert, width=20)
-        self.etHumidityOut = Entry(self.tabInsert, width=20)
+        self.etFactoryName = Entry(self.tabTemp, width=20)
+        self.etTempIn = Entry(self.tabTemp, width=20)
+        self.etTempOut = Entry(self.tabTemp, width=20)
+        self.etHumidityIn = Entry(self.tabTemp, width=20)
+        self.etHumidityOut = Entry(self.tabTemp, width=20)
 
-        self.btnFrame = Frame(self.tabInsert)
+        self.btnFrame = Frame(self.tabTemp)
         self.btnResult = Button(self.btnFrame, text="Kết quả", command = self.callbackBtnResult)
         self.btnSave = Button(self.btnFrame, text="Lưu", command = self.callbackBtnSave)
 
@@ -239,6 +244,7 @@ class View(Tk):
         self.frameWeather.grid(column=1, row=3, pady=(4, 0))
         self.cbWeather1.grid(column=0, row=1, sticky=W)
         self.cbWeather2.grid(column=0, row=2, sticky=W)
+        self.cbWeather3.grid(column=0, row=3, sticky=W)
 
         self.lbIn.grid(column=1, row=5, pady=(16, 4))
         self.lbOut.grid(column=2, row=5, pady=(16, 4))
@@ -266,12 +272,15 @@ class View(Tk):
         self.lbResHumidityMaxIn.grid(column=1, row=10, pady=(8, 0))
         self.lbResHumidityMaxOut.grid(column=2, row=10, pady=(8, 0))
 
-        self.lbResult.grid(row =0, column=3, rowspan=10, padx=(12, 0))
+        self.lbResult.grid(row=5, column=3, rowspan=10, padx=(12, 0))
         self.lbResult.configure(anchor="center")
         ###Button
         self.btnFrame.grid(column=1, row=11, pady=(16, 0))
         self.btnResult.grid(column=0, row=1)
         self.btnSave.grid(column=1, row=1)
 
+    def createTabFactory(self):
+        self.lb1 = Label(self.tabTemp, text="Nhà kho số")
+        self.et1 = Entry(self.tabTemp, width=20)
 view = View()
 view.mainloop()
