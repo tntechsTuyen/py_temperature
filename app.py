@@ -1,18 +1,10 @@
-from tkinter import *
-from common.view import View
+from tkinterweb import HtmlFrame
+import tkinter as tk
 
-class App(Tk):
-    def __init__(self):
-        super().__init__()
-
-        self.title("EHS")
-        self.geometry("600x400")
-        view = View(self)
+root = tk.Tk() #create the tkinter window
+frame = HtmlFrame(root) #create HTML browser
 
 
-        view.createTabList()
-        view.createTabInsert()
-
-if __name__ == '__main__':
-    app = App()
-    app.mainloop()
+frame.load_website("http://localhost/project/hr_system") #load a website
+frame.pack(fill="both", expand=True) #attach the HtmlFrame widget to the parent window
+root.mainloop()

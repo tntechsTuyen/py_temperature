@@ -1,5 +1,7 @@
 from tkinter import *
 from tkinter.ttk import *
+from tkinter import messagebox
+import textwrap
 import mysql.connector
 
 #Object
@@ -43,16 +45,28 @@ class ObjectTemp():
         self.checkWeather = mCheck
 
     def setTempIn(self, mTempIn):
-        self.tempIn = float(mTempIn)
+        if len(mTempIn.strip()) == 0:
+            self.tempIn = 0
+        else:
+            self.tempIn = float(mTempIn)
 
     def setTempOut(self, mTempOut):
-        self.tempOut = float(mTempOut)
+        if len(mTempOut.strip()) == 0:
+            self.tempOut = 0
+        else:
+            self.tempOut = float(mTempOut)
 
     def setHumidityIn(self, mHumidityIn):
-        self.humidityIn = float(mHumidityIn)
+        if len(mHumidityIn.strip()) == 0:
+            self.humidityIn = 0
+        else:
+            self.humidityIn = float(mHumidityIn)
 
     def setHumidityOut(self, mHumidityOut):
-        self.humidityOut = float(mHumidityOut)
+        if len(mHumidityOut.strip()) == 0:
+            self.humidityOut = 0
+        else:
+            self.humidityOut = float(mHumidityOut)
 
     def calHumidityMax(self, t):
         return 5.018 + (0.32321 * t) + (8.1847 * 0.001 * t ** 2) + (3.1243 * 0.0001 * t ** 3)
@@ -62,6 +76,14 @@ class ObjectTemp():
 
     def calTempPoint(self, t, h):
         return t - (100 - h) / 5
+
+    def checkData(self):
+        message = ""
+        check = 1
+        if len(self.name.strip()) == 0:
+            check = 0
+            message = "Bạn chưa nhập tên nhà kho"
+        return {"check": check, "message": message}
 
     def getData(self):
         return {
@@ -77,8 +99,8 @@ class ObjectTemp():
                 "out": self.tempOut
             },
             "humidity": {
-                "in": "%.2f" % self.humidityIn,
-                "out": "%.2f" % self.humidityOut
+                "in": self.humidityIn,
+                "out": self.humidityOut
             },
             "humidity_max":{
                 "in": "%.2f" % self.calHumidityMax(self.tempIn),
@@ -112,14 +134,14 @@ class Model:
         return result
 
     def findDataTemp(self):
-        queue = "SELECT fa.name, temp.win, temp.temp_in, temp.temp_out, temp.humidity_in, temp.humidity_out, temp.description, temp.created_at FROM factory fa INNER JOIN temperature temp ON fa.id = temp.id_factory LIMIT 100 "
+        queue = "SELECT name, win, temp_in, temp_out, humidity_in, humidity_out, description, created_at FROM temperature temp ORDER BY created_at DESC LIMIT 100 "
         self.cursor.execute(queue)
         result = self.cursor.fetchall()
         return result
 
     def insertTemperature(self ,param):
-        queue = "INSERT INTO `temperature`(`id_factory`, `win`, `temp_in`, `temp_out`, `humidity_in`, `humidity_out`, `description`) " \
-                "VALUES (%s, %s, %s, %s, %s, %s, %s)"
+        queue = "INSERT INTO `temperature`(`id_factory`, `name`, `win`, `temp_in`, `temp_out`, `humidity_in`, `humidity_out`, `description`) " \
+                "VALUES (%s, %s, %s, %s, %s, %s, %s, %s)"
         self.cursor.execute(queue, param)
         self.conn.commit()
         print("tbl_temperature: ID = "+str(self.cursor.lastrowid))
@@ -137,60 +159,71 @@ class Model:
 class View(Tk):
     def __init__(self):
         super().__init__()
-
+        self.iconbitmap("icon.ico")
         self.model = Model()
-
-        self.title("EHS")
+        self.title("Phần mềm tính toán điều kiện thông gió nhà kho súng pháo, khí tài lục quân")
         self.tabControl = Notebook(self)
         self.tabStatistic = Frame(self.tabControl)
         self.tabTemp = Frame(self.tabControl)
         self.tabFactory = Frame(self.tabControl)
-        self.tabControl.add(self.tabStatistic, text="Statistic")
-        self.tabControl.add(self.tabTemp, text="Temp")
-        self.tabControl.add(self.tabFactory, text="Factory")
+        self.tabControl.add(self.tabStatistic, text="Thống kê")
+        self.tabControl.add(self.tabTemp, text="Nhập dữ liệu")
+        # self.tabControl.add(self.tabFactory, text="Factory")
         self.tabControl.pack(expand=1, fill="both")
         self.objTemp = ObjectTemp()
         self.createTabList()
         self.createTabTemp()
-        self.createTabFactory()
+        self.createFooter()
+
+    def wrap(self, string, lenght=8):
+        return '\n'.join(textwrap.wrap(string, lenght))
 
     def createTabList(self):
+        style = Style()
+        style.configure("Treeview", foreground='red')
+        style.configure("Treeview.Heading", foreground='green', height=12)
+
         self.tbl = Treeview(self.tabStatistic)
-        self.tbl.pack()
-        self.tbl['columns'] = ('id', 'factory', "time", 'Tt', 'Tn', "RHt", "RHn", "AHt", "AHn", "Tdpt", "Tdpn", "At", "An", "description")
+        self.tbl.pack(fill='both', expand=True)
+        self.tbl['columns'] = ('id', 'factory', "time", "win", 'Tt', 'Tn', "RHt", "RHn", "AHt", "AHn", "Tdpt", "Tdpn", "At", "An", "description")
 
         self.tbl.column("#0", width=0, stretch=NO)
         self.tbl.column("id", anchor=CENTER, width=30)
-        self.tbl.column("factory", anchor=CENTER, width=50)
+        self.tbl.column("factory", anchor=CENTER, width=60)
         self.tbl.column("time", anchor=CENTER, width=130)
-        self.tbl.column("Tt", anchor=CENTER, width=40)
-        self.tbl.column("Tn", anchor=CENTER, width=40)
-        self.tbl.column("RHt", anchor=CENTER, width=40)
-        self.tbl.column("RHn", anchor=CENTER, width=40)
-        self.tbl.column("AHt", anchor=CENTER, width=50)
-        self.tbl.column("AHn", anchor=CENTER, width=50)
-        self.tbl.column("Tdpt", anchor=CENTER, width=50)
-        self.tbl.column("Tdpn", anchor=CENTER, width=50)
-        self.tbl.column("At", anchor=CENTER, width=40)
-        self.tbl.column("An", anchor=CENTER, width=40)
+        self.tbl.column("win", anchor=CENTER, width=30)
+        self.tbl.column("Tt", anchor=CENTER, width=90)
+        self.tbl.column("Tn", anchor=CENTER, width=90)
+        self.tbl.column("RHt", anchor=CENTER, width=80)
+        self.tbl.column("RHn", anchor=CENTER, width=80)
+        self.tbl.column("AHt", anchor=CENTER, width=145)
+        self.tbl.column("AHn", anchor=CENTER, width=145)
+        self.tbl.column("Tdpt", anchor=CENTER, width=165)
+        self.tbl.column("Tdpn", anchor=CENTER, width=165)
+        self.tbl.column("At", anchor=CENTER, width=125)
+        self.tbl.column("An", anchor=CENTER, width=125)
         self.tbl.column("description", anchor=CENTER, width=150)
 
         self.tbl.heading("#0", text="", anchor=CENTER)
         self.tbl.heading("id", text="#", anchor=CENTER)
-        self.tbl.heading("factory", text="Factory", anchor=CENTER)
-        self.tbl.heading("time", text="Time", anchor=CENTER)
-        self.tbl.heading("Tt", text="Tt", anchor=CENTER)
-        self.tbl.heading("Tn", text="Tn", anchor=CENTER)
-        self.tbl.heading("RHt", text="RHt", anchor=CENTER)
-        self.tbl.heading("RHn", text="RHn", anchor=CENTER)
-        self.tbl.heading("AHt", text="AHt", anchor=CENTER)
-        self.tbl.heading("AHn", text="AHn", anchor=CENTER)
-        self.tbl.heading("Tdpt", text="Tdpt", anchor=CENTER)
-        self.tbl.heading("Tdpn", text="Tdpn", anchor=CENTER)
-        self.tbl.heading("At", text="At", anchor=CENTER)
-        self.tbl.heading("An", text="An", anchor=CENTER)
-        self.tbl.heading("description", text="Description", anchor=CENTER)
+        self.tbl.heading("factory", text="Nhà kho", anchor=CENTER)
+        self.tbl.heading("time", text="Thời gian", anchor=CENTER)
+        self.tbl.heading("win", text="Gió", anchor=CENTER)
+        self.tbl.heading("Tt", text="Nhiệt độ trong", anchor=CENTER)
+        self.tbl.heading("Tn", text="Nhiệt độ ngoài", anchor=CENTER)
+        self.tbl.heading("RHt", text="Độ ẩm trong", anchor=CENTER)
+        self.tbl.heading("RHn", text="Độ ẩm ngoài", anchor=CENTER)
+        self.tbl.heading("AHt", text="Độ ẩm tuyệt đối trong", anchor=CENTER)
+        self.tbl.heading("AHn", text="Độ ẩm tuyệt đối ngoài", anchor=CENTER)
+        self.tbl.heading("Tdpt", text="Nhiệt độ điểm sương trong", anchor=CENTER)
+        self.tbl.heading("Tdpn", text="Nhiệt độ điểm sương ngoài", anchor=CENTER)
+        self.tbl.heading("At", text="Độ ẩm cực đại trong", anchor=CENTER)
+        self.tbl.heading("An", text="Độ ẩm cực đại ngoài", anchor=CENTER)
+        self.tbl.heading("description", text="Thời tiết", anchor=CENTER)
+        self.loadDataStatistic()
 
+    def loadDataStatistic(self):
+        self.tbl.delete(*self.tbl.get_children())
         data = self.model.findDataTemp()
         i = 1
         for item in data:
@@ -199,14 +232,14 @@ class View(Tk):
             dataItem = tmpTemp.getData()
             time = item[7]
             self.tbl.insert(parent='', index='end', iid=i, text='',
-                   values=(i, dataItem['name'], time
-                           , dataItem['temp']['in'], dataItem['temp']['out']
-                           , dataItem['humidity']['in'], dataItem['humidity']['out']
-                           , dataItem['ah']['in'], dataItem['ah']['out']
-                           , dataItem['temp_point']['in'], dataItem['temp_point']['out']
-                           , dataItem['humidity_max']['in'], dataItem['humidity_max']['out']
-                           , dataItem['weather']['text']))
-            i+=1
+                            values=(i, dataItem['name'], time, dataItem['win']
+                                    , dataItem['temp']['in'], dataItem['temp']['out']
+                                    , dataItem['humidity']['in'], dataItem['humidity']['out']
+                                    , dataItem['ah']['in'], dataItem['ah']['out']
+                                    , dataItem['temp_point']['in'], dataItem['temp_point']['out']
+                                    , dataItem['humidity_max']['in'], dataItem['humidity_max']['out']
+                                    , dataItem['weather']['text']))
+            i += 1
 
     def getDataFactory(self):
         factories = self.model.findAll("id, name", "factory")
@@ -228,8 +261,8 @@ class View(Tk):
             self.objTemp.setCheckWeather(0)
 
         self.objTemp.setWeather(valWeather)
-        self.objTemp.setName(self.valFactory.get())
-        self.objTemp.setIdFactory(self.optionFactory[self.valFactory.get()])
+        self.objTemp.setName(self.etFactoryName.get())
+        self.objTemp.setIdFactory(1)
         self.objTemp.setTempIn(self.etTempIn.get())
         self.objTemp.setTempOut(self.etTempOut.get())
         self.objTemp.setHumidityIn(self.etHumidityIn.get())
@@ -241,7 +274,6 @@ class View(Tk):
         self.getDataView()
         data = self.objTemp.getData()
         print(data)
-
         if data['weather']['check'] == int(1) and float(data['ah']['out']) < float(data['ah']['in']) and float(data['temp']['out']) <= float(32) and float(data['temp']['out']) >= float(10):
             if data['temp']['in'] <= data['temp']['out']:
                 if data['temp_point']['in'] >= data['temp_point']['out']:
@@ -249,7 +281,6 @@ class View(Tk):
             else:
                 if data['temp_point']['in'] < data['temp_point']['out']:
                     message = "Thông gió"
-
 
         self.lbResult.config(state=NORMAL)
         self.lbResult.delete(1.0, "end")
@@ -266,7 +297,14 @@ class View(Tk):
 
     def callbackBtnSave(self):
         data = self.objTemp.getData()
-        self.model.insertTemperature((data['id_factory'], data['win'], data['temp']['in'], data['temp']['out'], data['humidity']['in'], data['humidity']['out'], data['weather']['text']))
+        check = self.objTemp.checkData()
+        if check['check'] == 0:
+            messagebox.showwarning("Cảnh báo", 'Bạn chưa nhập thông tin '+check["message"])
+            return
+
+        self.model.insertTemperature((data['id_factory'], data['name'], data['win'], data['temp']['in'], data['temp']['out'], data['humidity']['in'], data['humidity']['out'], data['weather']['text']))
+        self.loadDataStatistic()
+        messagebox.showinfo("Thông báo", "Thêm dữ liệu thành công")
         return
 
     def callbackSaveFactory(self):
@@ -306,14 +344,8 @@ class View(Tk):
         self.etWinLevel = OptionMenu(self.tabTemp, self.valWinLevel, *self.optionWin)
         self.etWinLevel.config(width=16)
 
-        self.optionFactory = self.getDataFactory()
-        keyFactory = list(self.optionFactory.keys())
-        keyFactory.insert(0, keyFactory[0])
-        self.valFactory = StringVar(self.tabTemp)
-        self.etFactoryName = OptionMenu(self.tabTemp, self.valFactory, *keyFactory)
-        self.etFactoryName.config(width=16)
         ##Entry
-
+        self.etFactoryName = Entry(self.tabTemp, width=20)
         self.etTempIn = Entry(self.tabTemp, width=20)
         self.etTempOut = Entry(self.tabTemp, width=20)
         self.etHumidityIn = Entry(self.tabTemp, width=20)
@@ -370,6 +402,10 @@ class View(Tk):
         self.btnResult.grid(column=0, row=1)
         self.btnSave.grid(column=1, row=1)
 
+    def createFooter(self):
+        self.lbFooter = Label(self, text="Copyright by Dương Thế Tuấn Anh", anchor="e")
+        self.lbFooter.pack(fill='both')
+
     def createTabFactory(self):
         self.lb1 = Label(self.tabFactory, text="Nhà kho số")
         self.lb2 = Label(self.tabFactory, text="Mô tả")
@@ -384,3 +420,6 @@ class View(Tk):
 
 view = View()
 view.mainloop()
+
+# pyinstaller --onefile temperature\common\application.py
+# pyinstaller --onefile --windowed application.py --path=C:\Users\User01\AppData\Local\Programs\Python\Python310\Lib\site-packages
