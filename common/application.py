@@ -77,6 +77,19 @@ class ObjectTemp():
     def calTempPoint(self, t, h):
         return t - (100 - h) / 5
 
+    def getSolution(self):
+        data = self.getData()
+        message = "Nhà kho không đủ điều kiện thông gió"
+        if data['weather']['check'] == int(1) and float(data['ah']['out']) < float(data['ah']['in']) and float(
+                data['temp']['out']) <= float(32) and float(data['temp']['out']) >= float(10):
+            if data['temp']['in'] <= data['temp']['out']:
+                if data['temp_point']['in'] >= data['temp_point']['out']:
+                    message = "Nhà kho đủ điều kiện thông gió"
+            else:
+                if data['temp_point']['in'] < data['temp_point']['out']:
+                    message = "Nhà kho đủ điều kiện thông gió"
+        return message
+
     def checkData(self):
         message = ""
         check = 1
@@ -134,7 +147,7 @@ class Model:
         return result
 
     def findDataTemp(self):
-        queue = "SELECT name, win, temp_in, temp_out, humidity_in, humidity_out, description, created_at FROM temperature temp ORDER BY created_at DESC LIMIT 100 "
+        queue = "SELECT name, win, temp_in, temp_out, humidity_in, humidity_out, description, DATE_FORMAT(`created_at`, '%d/%m/%Y'), DATE_FORMAT(`created_at`, '%H:%i:%s'), id FROM temperature temp ORDER BY created_at DESC LIMIT 100 "
         self.cursor.execute(queue)
         result = self.cursor.fetchall()
         return result
@@ -181,33 +194,34 @@ class View(Tk):
     def createTabList(self):
         style = Style()
         style.configure("Treeview", foreground='red')
-        style.configure("Treeview.Heading", foreground='green', height=12)
+        style.configure("Treeview.Heading", foreground='black', font=('Arial Bold', 8))
 
         self.tbl = Treeview(self.tabStatistic)
         self.tbl.pack(fill='both', expand=True)
-        self.tbl['columns'] = ('id', 'factory', "time", "win", 'Tt', 'Tn', "RHt", "RHn", "AHt", "AHn", "Tdpt", "Tdpn", "At", "An", "description")
+        self.tbl['columns'] = ('date', "time", "name", "win", 'Tt', 'Tn', "RHt", "RHn", "AHt", "AHn", "Tdpt", "Tdpn", "At", "An", "weather", "solution")
 
         self.tbl.column("#0", width=0, stretch=NO)
-        self.tbl.column("id", anchor=CENTER, width=30)
-        self.tbl.column("factory", anchor=CENTER, width=60)
-        self.tbl.column("time", anchor=CENTER, width=130)
+        self.tbl.column("date", anchor=CENTER, width=80)
+        self.tbl.column("time", anchor=CENTER, width=60)
+        self.tbl.column("name", anchor=CENTER, width=30)
         self.tbl.column("win", anchor=CENTER, width=30)
         self.tbl.column("Tt", anchor=CENTER, width=90)
         self.tbl.column("Tn", anchor=CENTER, width=90)
         self.tbl.column("RHt", anchor=CENTER, width=80)
         self.tbl.column("RHn", anchor=CENTER, width=80)
-        self.tbl.column("AHt", anchor=CENTER, width=145)
-        self.tbl.column("AHn", anchor=CENTER, width=145)
-        self.tbl.column("Tdpt", anchor=CENTER, width=165)
-        self.tbl.column("Tdpn", anchor=CENTER, width=165)
-        self.tbl.column("At", anchor=CENTER, width=125)
-        self.tbl.column("An", anchor=CENTER, width=125)
-        self.tbl.column("description", anchor=CENTER, width=150)
+        self.tbl.column("AHt", anchor=CENTER, width=140)
+        self.tbl.column("AHn", anchor=CENTER, width=140)
+        self.tbl.column("Tdpt", anchor=CENTER, width=155)
+        self.tbl.column("Tdpn", anchor=CENTER, width=155)
+        self.tbl.column("At", anchor=CENTER, width=120)
+        self.tbl.column("An", anchor=CENTER, width=120)
+        self.tbl.column("weather", anchor=CENTER, width=80)
+        self.tbl.column("solution", anchor=CENTER, width=230)
 
         self.tbl.heading("#0", text="", anchor=CENTER)
-        self.tbl.heading("id", text="#", anchor=CENTER)
-        self.tbl.heading("factory", text="Nhà kho", anchor=CENTER)
+        self.tbl.heading("date", text="Ngày", anchor=CENTER)
         self.tbl.heading("time", text="Thời gian", anchor=CENTER)
+        self.tbl.heading("name", text="Kho", anchor=CENTER)
         self.tbl.heading("win", text="Gió", anchor=CENTER)
         self.tbl.heading("Tt", text="Nhiệt độ trong", anchor=CENTER)
         self.tbl.heading("Tn", text="Nhiệt độ ngoài", anchor=CENTER)
@@ -219,27 +233,29 @@ class View(Tk):
         self.tbl.heading("Tdpn", text="Nhiệt độ điểm sương ngoài", anchor=CENTER)
         self.tbl.heading("At", text="Độ ẩm cực đại trong", anchor=CENTER)
         self.tbl.heading("An", text="Độ ẩm cực đại ngoài", anchor=CENTER)
-        self.tbl.heading("description", text="Thời tiết", anchor=CENTER)
+        self.tbl.heading("weather", text="Thời tiết", anchor=CENTER)
+        self.tbl.heading("solution", text="Biện pháp", anchor=CENTER)
         self.loadDataStatistic()
 
     def loadDataStatistic(self):
         self.tbl.delete(*self.tbl.get_children())
         data = self.model.findDataTemp()
-        i = 1
         for item in data:
             tmpTemp = ObjectTemp()
             tmpTemp.setData(item)
             dataItem = tmpTemp.getData()
-            time = item[7]
-            self.tbl.insert(parent='', index='end', iid=i, text='',
-                            values=(i, dataItem['name'], time, dataItem['win']
+            id = item[9]
+            date = item[7]
+            time = item[8]
+
+            self.tbl.insert(parent='', index='end', iid=id, text='',
+                            values=(date, time, dataItem['name'], dataItem['win']
                                     , dataItem['temp']['in'], dataItem['temp']['out']
                                     , dataItem['humidity']['in'], dataItem['humidity']['out']
                                     , dataItem['ah']['in'], dataItem['ah']['out']
                                     , dataItem['temp_point']['in'], dataItem['temp_point']['out']
                                     , dataItem['humidity_max']['in'], dataItem['humidity_max']['out']
-                                    , dataItem['weather']['text']))
-            i += 1
+                                    , dataItem['weather']['text'], tmpTemp.getSolution()))
 
     def getDataFactory(self):
         factories = self.model.findAll("id, name", "factory")
@@ -270,21 +286,12 @@ class View(Tk):
         self.objTemp.setWin(self.valWinLevel.get())
 
     def callbackBtnResult(self):
-        message = "Không thông gió"
         self.getDataView()
         data = self.objTemp.getData()
-        print(data)
-        if data['weather']['check'] == int(1) and float(data['ah']['out']) < float(data['ah']['in']) and float(data['temp']['out']) <= float(32) and float(data['temp']['out']) >= float(10):
-            if data['temp']['in'] <= data['temp']['out']:
-                if data['temp_point']['in'] >= data['temp_point']['out']:
-                    message = "Thông gió"
-            else:
-                if data['temp_point']['in'] < data['temp_point']['out']:
-                    message = "Thông gió"
 
         self.lbResult.config(state=NORMAL)
         self.lbResult.delete(1.0, "end")
-        self.lbResult.insert(END, message)
+        self.lbResult.insert(END, self.objTemp.getSolution())
         self.lbResult.config(state=DISABLED)
 
         self.lbResTempPointIn.config(text=data['temp_point']['in'])
@@ -317,7 +324,7 @@ class View(Tk):
         self.lbTemp = Label(self.tabTemp, text="Nhiệt độ")
         self.lbHumidity = Label(self.tabTemp, text="Độ ẩm tương đối")
 
-        self.lbResult = Text(self.tabTemp, height = 5, width = 20, background="orange red", foreground="white", borderwidth=2, relief="ridge", font=("Arial",16))
+        self.lbResult = Text(self.tabTemp, height = 5, width = 20, background="white", foreground="orange red", borderwidth=2, relief="ridge", font=("Arial",16))
 
         self.frameWeather = Frame(self.tabTemp)
         self.cbWeather1 = Checkbutton(self.frameWeather, text="Sương mù", onvalue=1)
@@ -422,4 +429,4 @@ view = View()
 view.mainloop()
 
 # pyinstaller --onefile temperature\common\application.py
-# pyinstaller --onefile --windowed application.py --path=C:\Users\User01\AppData\Local\Programs\Python\Python310\Lib\site-packages
+# pyinstaller --onefile --windowed application.py --path=C:\Users\emtuy\AppData\Local\Programs\Python\Python310\Lib\site-packages
