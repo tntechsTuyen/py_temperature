@@ -1,6 +1,7 @@
 from tkinter import *
 from tkinter.ttk import *
 from tkinter import messagebox
+from dotenv import dotenv_values
 import textwrap
 import mysql.connector
 
@@ -132,11 +133,12 @@ class ObjectTemp():
 #Database
 class Model:
     def __init__(self):
+        config = dotenv_values(".env")
         self.conn = mysql.connector.connect(
-          host="localhost",
-          user="root",
-          password="12345678",
-          database="temperature"
+          host=config['DATABASE.HOST'],
+          user=config['DATABASE.USER'],
+          password=config['DATABASE.PASS'],
+          database=config['DATABASE.NAME']
         )
         self.cursor = self.conn.cursor()
 
@@ -193,7 +195,7 @@ class View(Tk):
 
     def createTabList(self):
         style = Style()
-        style.configure("Treeview", foreground='red')
+        style.configure("Treeview", fieldbackground='red')
         style.configure("Treeview.Heading", foreground='black', font=('Arial Bold', 8))
 
         self.tbl = Treeview(self.tabStatistic)
