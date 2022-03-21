@@ -185,7 +185,7 @@ class View(Tk):
         self.tabControl.add(self.tabTemp, text="Nhập dữ liệu")
         # self.tabControl.add(self.tabFactory, text="Factory")
         self.tabControl.pack(expand=1, fill="both")
-        self.objTemp = ObjectTemp()
+
         self.createTabList()
         self.createTabTemp()
         self.createFooter()
@@ -200,7 +200,7 @@ class View(Tk):
 
         self.tbl = Treeview(self.tabStatistic)
         self.tbl.pack(fill='both', expand=True)
-        self.tbl['columns'] = ('date', "time", "name", "win", 'Tt', 'Tn', "RHt", "RHn", "AHt", "AHn", "Tdpt", "Tdpn", "At", "An", "weather", "solution")
+        self.tbl['columns'] = ('date', "time", "name", "win", 'Tt', 'Tn', "RHt", "RHn", "AHt", "AHn", "Tdpt", "Tdpn", "weather", "solution")
 
         self.tbl.column("#0", width=0, stretch=NO)
         self.tbl.column("date", anchor=CENTER, width=80)
@@ -215,8 +215,6 @@ class View(Tk):
         self.tbl.column("AHn", anchor=CENTER, width=140)
         self.tbl.column("Tdpt", anchor=CENTER, width=155)
         self.tbl.column("Tdpn", anchor=CENTER, width=155)
-        self.tbl.column("At", anchor=CENTER, width=120)
-        self.tbl.column("An", anchor=CENTER, width=120)
         self.tbl.column("weather", anchor=CENTER, width=80)
         self.tbl.column("solution", anchor=CENTER, width=230)
 
@@ -233,8 +231,6 @@ class View(Tk):
         self.tbl.heading("AHn", text="Độ ẩm tuyệt đối ngoài", anchor=CENTER)
         self.tbl.heading("Tdpt", text="Nhiệt độ điểm sương trong", anchor=CENTER)
         self.tbl.heading("Tdpn", text="Nhiệt độ điểm sương ngoài", anchor=CENTER)
-        self.tbl.heading("At", text="Độ ẩm cực đại trong", anchor=CENTER)
-        self.tbl.heading("An", text="Độ ẩm cực đại ngoài", anchor=CENTER)
         self.tbl.heading("weather", text="Thời tiết", anchor=CENTER)
         self.tbl.heading("solution", text="Biện pháp", anchor=CENTER)
         self.loadDataStatistic()
@@ -256,7 +252,6 @@ class View(Tk):
                                     , dataItem['humidity']['in'], dataItem['humidity']['out']
                                     , dataItem['ah']['in'], dataItem['ah']['out']
                                     , dataItem['temp_point']['in'], dataItem['temp_point']['out']
-                                    , dataItem['humidity_max']['in'], dataItem['humidity_max']['out']
                                     , dataItem['weather']['text'], tmpTemp.getSolution()))
 
     def getDataFactory(self):
@@ -276,7 +271,6 @@ class View(Tk):
             self.objTemp.setCheckWeather(0)
         if self.cbWeather3.instate(['selected']) :
             valWeather += self.cbWeather3.cget("text")
-            self.objTemp.setCheckWeather(0)
 
         self.objTemp.setWeather(valWeather)
         self.objTemp.setName(self.etFactoryName.get())
@@ -288,9 +282,10 @@ class View(Tk):
         self.objTemp.setWin(self.valWinLevel.get())
 
     def callbackBtnResult(self):
+        self.objTemp = ObjectTemp()
         self.getDataView()
         data = self.objTemp.getData()
-
+        print(data)
         self.lbResult.config(state=NORMAL)
         self.lbResult.delete(1.0, "end")
         self.lbResult.insert(END, self.objTemp.getSolution())
@@ -326,7 +321,7 @@ class View(Tk):
         self.lbTemp = Label(self.tabTemp, text="Nhiệt độ")
         self.lbHumidity = Label(self.tabTemp, text="Độ ẩm tương đối")
 
-        self.lbResult = Text(self.tabTemp, height = 5, width = 20, background="white", foreground="orange red", borderwidth=2, relief="ridge", font=("Arial",16))
+        self.lbResult = Text(self.tabTemp, height = 5, width = 35, background="white", foreground="orange red", borderwidth=2, relief="ridge", font=("Arial",16))
 
         self.frameWeather = Frame(self.tabTemp)
         self.cbWeather1 = Checkbutton(self.frameWeather, text="Sương mù", onvalue=1)
@@ -402,14 +397,13 @@ class View(Tk):
         self.lbHumidityMax.grid(column=0, row=10, pady=(8, 0), sticky=W)
         self.lbResHumidityMaxIn.grid(column=1, row=10, pady=(8, 0))
         self.lbResHumidityMaxOut.grid(column=2, row=10, pady=(8, 0))
-
-        self.lbResult.grid(row=5, column=3, rowspan=10, padx=(12, 0))
-        self.lbResult.insert('end', 'Có thông gió nhà kho hay không ???')
-        self.lbResult.config(state=DISABLED)
         ###Button
         self.btnFrame.grid(column=1, row=11, pady=(16, 0))
         self.btnResult.grid(column=0, row=1)
         self.btnSave.grid(column=1, row=1)
+
+        self.lbResult.grid(row=12, column=0, columnspan=3, pady=(8, 0))
+        self.lbResult.config(state=DISABLED)
 
     def createFooter(self):
         self.lbFooter = Label(self, text="Copyright by Dương Thế Tuấn Anh", anchor="e")
@@ -432,3 +426,4 @@ view.mainloop()
 
 # pyinstaller --onefile temperature\common\application.py
 # pyinstaller --onefile --windowed application.py --path=C:\Users\emtuy\AppData\Local\Programs\Python\Python310\Lib\site-packages
+# pyinstaller --onefile --windowed application.py --path=C:\Users\User01\AppData\Local\Programs\Python\Python310\Lib\site-packages
