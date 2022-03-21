@@ -2,10 +2,9 @@ from tkinter import *
 from tkinter.ttk import *
 from tkinter import messagebox
 from dotenv import dotenv_values
-import textwrap
 import mysql.connector
 
-#Object
+#Object Model
 class ObjectTemp():
     def __init__(self):
         self.idFactory = 0
@@ -28,7 +27,6 @@ class ObjectTemp():
         self.humidityIn = data[4]
         self.humidityOut = data[5]
         self.weather = data[6]
-
 
     def setIdFactory(self, mIdFactory):
         self.idFactory = mIdFactory
@@ -142,14 +140,8 @@ class Model:
         )
         self.cursor = self.conn.cursor()
 
-    def findAll(self, column, tblName):
-        queue = "SELECT "+column+" FROM "+tblName
-        self.cursor.execute(queue)
-        result = self.cursor.fetchall()
-        return result
-
     def findDataTemp(self):
-        queue = "SELECT name, win, temp_in, temp_out, humidity_in, humidity_out, description, DATE_FORMAT(`created_at`, '%d/%m/%Y'), DATE_FORMAT(`created_at`, '%H:%i:%s'), id FROM temperature temp ORDER BY created_at DESC LIMIT 100 "
+        queue = "SELECT name, win, temp_in, temp_out, humidity_in, humidity_out, description, DATE_FORMAT(`created_at`, '%d/%m/%Y'), DATE_FORMAT(`created_at`, '%H:%i:%s'), id FROM temperature temp ORDER BY created_at DESC LIMIT 1000 "
         self.cursor.execute(queue)
         result = self.cursor.fetchall()
         return result
@@ -162,42 +154,28 @@ class Model:
         print("tbl_temperature: ID = "+str(self.cursor.lastrowid))
         return self.cursor.lastrowid
 
-    def insertFactory(self, param):
-        queue = "INSERT INTO `factory`(`name`, `description`) " \
-                "VALUES (%s, %s)"
-        self.cursor.execute(queue, param)
-        self.conn.commit()
-        print("tbl_factory: ID = " + str(self.cursor.lastrowid))
-        return self.cursor.lastrowid
-
 #View
 class View(Tk):
     def __init__(self):
         super().__init__()
-        self.iconbitmap("icon.ico")
         self.model = Model()
+
+        self.iconbitmap("icon.ico")
         self.title("Phần mềm tính toán điều kiện thông gió nhà kho súng pháo, khí tài lục quân")
         self.tabControl = Notebook(self)
-        self.tabStatistic = Frame(self.tabControl)
-        self.tabTemp = Frame(self.tabControl)
-        self.tabFactory = Frame(self.tabControl)
-        self.tabControl.add(self.tabStatistic, text="Thống kê")
+        self.tabStatistic = Frame(self.tabControl) #Tab Thống kê
+        self.tabTemp = Frame(self.tabControl) #Tab nhập nhiệt độ
+        self.tabControl.add(self.tabStatistic, text="Thống kê") #Thêm tab
         self.tabControl.add(self.tabTemp, text="Nhập dữ liệu")
-        # self.tabControl.add(self.tabFactory, text="Factory")
         self.tabControl.pack(expand=1, fill="both")
+        self.createTabStatistic() #Khởi tạo tab thống kê
+        self.createTabTemp() #Khởi tạo tab nhập nhiệt độ
+        self.createFooter() #Khởi tạo nội dung người tạo
 
-        self.createTabList()
-        self.createTabTemp()
-        self.createFooter()
-
-    def wrap(self, string, lenght=8):
-        return '\n'.join(textwrap.wrap(string, lenght))
-
-    def createTabList(self):
+    def createTabStatistic(self):
         style = Style()
         style.configure("Treeview", fieldbackground='red')
         style.configure("Treeview.Heading", foreground='black', font=('Arial Bold', 8))
-
         self.tbl = Treeview(self.tabStatistic)
         self.tbl.pack(fill='both', expand=True)
         self.tbl['columns'] = ('date', "time", "name", "win", 'Tt', 'Tn', "RHt", "RHn", "AHt", "AHn", "Tdpt", "Tdpn", "weather", "solution")
@@ -215,7 +193,7 @@ class View(Tk):
         self.tbl.column("AHn", anchor=CENTER, width=140)
         self.tbl.column("Tdpt", anchor=CENTER, width=155)
         self.tbl.column("Tdpn", anchor=CENTER, width=155)
-        self.tbl.column("weather", anchor=CENTER, width=80)
+        self.tbl.column("weather", anchor=CENTER, width=120)
         self.tbl.column("solution", anchor=CENTER, width=230)
 
         self.tbl.heading("#0", text="", anchor=CENTER)
@@ -245,7 +223,6 @@ class View(Tk):
             id = item[9]
             date = item[7]
             time = item[8]
-
             self.tbl.insert(parent='', index='end', iid=id, text='',
                             values=(date, time, dataItem['name'], dataItem['win']
                                     , dataItem['temp']['in'], dataItem['temp']['out']
@@ -253,13 +230,6 @@ class View(Tk):
                                     , dataItem['ah']['in'], dataItem['ah']['out']
                                     , dataItem['temp_point']['in'], dataItem['temp_point']['out']
                                     , dataItem['weather']['text'], tmpTemp.getSolution()))
-
-    def getDataFactory(self):
-        factories = self.model.findAll("id, name", "factory")
-        result = {}
-        for item in factories:
-            result[item[1]] = item[0]
-        return result
 
     def getDataView(self):
         valWeather = ""
@@ -285,7 +255,6 @@ class View(Tk):
         self.objTemp = ObjectTemp()
         self.getDataView()
         data = self.objTemp.getData()
-        print(data)
         self.lbResult.config(state=NORMAL)
         self.lbResult.delete(1.0, "end")
         self.lbResult.insert(END, self.objTemp.getSolution())
@@ -311,17 +280,13 @@ class View(Tk):
         messagebox.showinfo("Thông báo", "Thêm dữ liệu thành công")
         return
 
-    def callbackSaveFactory(self):
-        return self.model.insertFactory((self.et1.get(), self.et2.get()))
-
     def createTabTemp(self):
         self.lbFactoryName = Label(self.tabTemp, text="Nhà kho số")
         self.lbWinLevel = Label(self.tabTemp, text="Cấp gió")
         self.lbWeather = Label(self.tabTemp, text="Thời tiết")
         self.lbTemp = Label(self.tabTemp, text="Nhiệt độ")
         self.lbHumidity = Label(self.tabTemp, text="Độ ẩm tương đối")
-
-        self.lbResult = Text(self.tabTemp, height = 5, width = 35, background="white", foreground="orange red", borderwidth=2, relief="ridge", font=("Arial",16))
+        self.lbResult = Text(self.tabTemp, height = 5, width = 35, background="white", foreground="orange red", borderwidth=2, relief="ridge", font=("Arial",14))
 
         self.frameWeather = Frame(self.tabTemp)
         self.cbWeather1 = Checkbutton(self.frameWeather, text="Sương mù", onvalue=1)
@@ -344,7 +309,7 @@ class View(Tk):
         # Select Option
         self.optionWin = ["0", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10"]
         self.valWinLevel = StringVar(self.tabTemp)
-        self.valWinLevel.set(self.optionWin[0])  # default value
+        self.valWinLevel.set(self.optionWin[0])  #giá trị mặc định cấp gió
         self.etWinLevel = OptionMenu(self.tabTemp, self.valWinLevel, *self.optionWin)
         self.etWinLevel.config(width=16)
 
@@ -379,12 +344,10 @@ class View(Tk):
         self.lbTemp.grid(column=0, row=6, sticky=W)
         self.etTempIn.grid(column=1, row=6)
         self.etTempOut.grid(column=2, row=6)
-
         ###Humidity
         self.lbHumidity.grid(column=0, row=7, pady=8, sticky=W)
         self.etHumidityIn.grid(column=1, row=7)
         self.etHumidityOut.grid(column=2, row=7)
-
         ###Result
         self.lbTempPoint.grid(column=0, row=8, pady=(8, 0), sticky=W)
         self.lbResTempPointIn.grid(column=1, row=8, pady=(8, 0))
@@ -408,18 +371,6 @@ class View(Tk):
     def createFooter(self):
         self.lbFooter = Label(self, text="Copyright by Dương Thế Tuấn Anh", anchor="e")
         self.lbFooter.pack(fill='both')
-
-    def createTabFactory(self):
-        self.lb1 = Label(self.tabFactory, text="Nhà kho số")
-        self.lb2 = Label(self.tabFactory, text="Mô tả")
-        self.et1 = Entry(self.tabFactory, width=20)
-        self.et2 = Entry(self.tabFactory, width=20)
-        self.btn1 = Button(self.tabFactory, text="Lưu", command=self.callbackSaveFactory)
-        self.lb1.grid(row=0, column=0, pady=(8, 0), sticky=W)
-        self.et1.grid(row=0, column=1, pady=(8, 0))
-        self.lb2.grid(row=1, column=0, pady=(8, 0), sticky=W)
-        self.et2.grid(row=1, column=1, pady=(8, 0))
-        self.btn1.grid(row=2, column=1, pady=(8, 0))
 
 view = View()
 view.mainloop()
