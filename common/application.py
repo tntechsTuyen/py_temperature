@@ -214,9 +214,9 @@ class View(Tk):
         self.loadDataStatistic()
 
     def loadDataStatistic(self):
-        self.tbl.delete(*self.tbl.get_children())
-        data = self.model.findDataTemp()
-        for item in data:
+        self.tbl.delete(*self.tbl.get_children()) #Xóa nội dung cũ trong bảng
+        data = self.model.findDataTemp() #Lấy ra danh sách nhiệt độ độ ẩm
+        for item in data: #Truy xuất dữ liệu và hiển thị ra bảng
             tmpTemp = ObjectTemp()
             tmpTemp.setData(item)
             dataItem = tmpTemp.getData()
@@ -230,6 +230,22 @@ class View(Tk):
                                     , dataItem['ah']['in'], dataItem['ah']['out']
                                     , dataItem['temp_point']['in'], dataItem['temp_point']['out']
                                     , dataItem['weather']['text'], tmpTemp.getSolution()))
+
+    def callbackBtnResult(self):
+        self.objTemp = ObjectTemp()
+        self.getDataView()
+        data = self.objTemp.getData()
+        self.lbResult.config(state=NORMAL)
+        self.lbResult.delete(1.0, "end")
+        self.lbResult.insert(END, self.objTemp.getSolution())
+        self.lbResult.config(state=DISABLED)
+
+        self.lbResTempPointIn.config(text=data['temp_point']['in'])
+        self.lbResTempPointOut.config(text=data['temp_point']['out'])
+        self.lbResAhIn.config(text=data['ah']['in'])
+        self.lbResAhOut.config(text=data['ah']['out'])
+        self.lbResHumidityMaxIn.config(text=data['humidity_max']['in'])
+        self.lbResHumidityMaxOut.config(text=data['humidity_max']['out'])
 
     def getDataView(self):
         valWeather = ""
@@ -251,23 +267,6 @@ class View(Tk):
         self.objTemp.setHumidityOut(self.etHumidityOut.get())
         self.objTemp.setWin(self.valWinLevel.get())
 
-    def callbackBtnResult(self):
-        self.objTemp = ObjectTemp()
-        self.getDataView()
-        data = self.objTemp.getData()
-        self.lbResult.config(state=NORMAL)
-        self.lbResult.delete(1.0, "end")
-        self.lbResult.insert(END, self.objTemp.getSolution())
-        self.lbResult.config(state=DISABLED)
-
-        self.lbResTempPointIn.config(text=data['temp_point']['in'])
-        self.lbResTempPointOut.config(text=data['temp_point']['out'])
-        self.lbResAhIn.config(text=data['ah']['in'])
-        self.lbResAhOut.config(text=data['ah']['out'])
-        self.lbResHumidityMaxIn.config(text=data['humidity_max']['in'])
-        self.lbResHumidityMaxOut.config(text=data['humidity_max']['out'])
-
-
     def callbackBtnSave(self):
         data = self.objTemp.getData()
         check = self.objTemp.checkData()
@@ -281,6 +280,7 @@ class View(Tk):
         return
 
     def createTabTemp(self):
+        #Khởi tạo View
         self.lbFactoryName = Label(self.tabTemp, text="Nhà kho số")
         self.lbWinLevel = Label(self.tabTemp, text="Cấp gió")
         self.lbWeather = Label(self.tabTemp, text="Thời tiết")
@@ -288,6 +288,7 @@ class View(Tk):
         self.lbHumidity = Label(self.tabTemp, text="Độ ẩm tương đối")
         self.lbResult = Text(self.tabTemp, height = 5, width = 35, background="white", foreground="orange red", borderwidth=2, relief="ridge", font=("Arial",14))
 
+        ## Checkbox (Thời tiết)
         self.frameWeather = Frame(self.tabTemp)
         self.cbWeather1 = Checkbutton(self.frameWeather, text="Sương mù", onvalue=1)
         self.cbWeather2 = Checkbutton(self.frameWeather, text="Mưa", onvalue=2)
@@ -306,7 +307,7 @@ class View(Tk):
         self.lbResHumidityMaxIn = Label(self.tabTemp)
         self.lbResHumidityMaxOut = Label(self.tabTemp)
 
-        # Select Option
+        ## Select Option (Cấp gió)
         self.optionWin = ["0", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10"]
         self.valWinLevel = StringVar(self.tabTemp)
         self.valWinLevel.set(self.optionWin[0])  #giá trị mặc định cấp gió
@@ -314,13 +315,13 @@ class View(Tk):
         self.etWinLevel.config(width=16)
 
         ##Entry
-        self.etFactoryName = Entry(self.tabTemp, width=20)
-        self.etTempIn = Entry(self.tabTemp, width=20)
-        self.etTempOut = Entry(self.tabTemp, width=20)
-        self.etHumidityIn = Entry(self.tabTemp, width=20)
-        self.etHumidityOut = Entry(self.tabTemp, width=20)
+        self.etFactoryName = Entry(self.tabTemp, width=20) #Tên nhà kho
+        self.etTempIn = Entry(self.tabTemp, width=20) #Nhiệt độ trong kho
+        self.etTempOut = Entry(self.tabTemp, width=20) #Nhiệt độ ngoài kho
+        self.etHumidityIn = Entry(self.tabTemp, width=20) #Độ ẩm trong kho
+        self.etHumidityOut = Entry(self.tabTemp, width=20) #Độ ẩm ngoài kho
 
-        self.btnFrame = Frame(self.tabTemp)
+        self.btnFrame = Frame(self.tabTemp) #Nút "Kết Quả" + "Lưu"
         self.btnResult = Button(self.btnFrame, text="Kết quả", command = self.callbackBtnResult)
         self.btnSave = Button(self.btnFrame, text="Lưu", command = self.callbackBtnSave)
 
@@ -337,8 +338,8 @@ class View(Tk):
         self.cbWeather2.grid(column=0, row=2, sticky=W)
         self.cbWeather3.grid(column=0, row=3, sticky=W)
 
-        self.lbIn.grid(column=1, row=5, pady=(16, 4))
-        self.lbOut.grid(column=2, row=5, pady=(16, 4))
+        self.lbIn.grid(column=1, row=5, pady=(16, 4)) #Label: TRONG KHO
+        self.lbOut.grid(column=2, row=5, pady=(16, 4)) #Label: NGOÀI KHO
 
         ###Temp
         self.lbTemp.grid(column=0, row=6, sticky=W)
@@ -348,7 +349,7 @@ class View(Tk):
         self.lbHumidity.grid(column=0, row=7, pady=8, sticky=W)
         self.etHumidityIn.grid(column=1, row=7)
         self.etHumidityOut.grid(column=2, row=7)
-        ###Result
+        ###Result (Hiển thị kết quả)
         self.lbTempPoint.grid(column=0, row=8, pady=(8, 0), sticky=W)
         self.lbResTempPointIn.grid(column=1, row=8, pady=(8, 0))
         self.lbResTempPointOut.grid(column=2, row=8, pady=(8, 0))
@@ -365,6 +366,7 @@ class View(Tk):
         self.btnResult.grid(column=0, row=1)
         self.btnSave.grid(column=1, row=1)
 
+        ##Nội dung biện pháp
         self.lbResult.grid(row=12, column=0, columnspan=3, pady=(8, 0))
         self.lbResult.config(state=DISABLED)
 
