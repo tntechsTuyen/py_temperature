@@ -2,12 +2,15 @@ from tkinter import *
 from tkinter.ttk import *
 from tkinter import messagebox
 from dotenv import dotenv_values
+import jsonlines
+import datetime
+import os
+
 import mysql.connector
 
-#Object Model
+#Object Temp (Đối tượng nhiệt độ kho)
 class ObjectTemp():
     def __init__(self):
-        self.idFactory = 0
         self.name = ""
         self.win = 0
         self.weather = ""
@@ -18,7 +21,6 @@ class ObjectTemp():
         self.humidityOut = 0
 
     def setData(self, data):
-        self.idFactory = 0
         self.name = data[0]
         self.win = data[1]
         self.checkWeather = 1
@@ -27,9 +29,6 @@ class ObjectTemp():
         self.humidityIn = data[4]
         self.humidityOut = data[5]
         self.weather = data[6]
-
-    def setIdFactory(self, mIdFactory):
-        self.idFactory = mIdFactory
 
     def setName(self, mName):
         self.name = mName
@@ -99,7 +98,6 @@ class ObjectTemp():
 
     def getData(self):
         return {
-            "id_factory": self.idFactory,
             "name": self.name,
             "win": self.win,
             "weather": {
@@ -141,7 +139,7 @@ class Model:
         self.cursor = self.conn.cursor()
 
     def findDataTemp(self):
-        queue = "SELECT name, win, temp_in, temp_out, humidity_in, humidity_out, description, DATE_FORMAT(`created_at`, '%d/%m/%Y'), DATE_FORMAT(`created_at`, '%H:%i:%s'), id FROM temperature temp ORDER BY created_at DESC LIMIT 1000 "
+        queue = "SELECT name, win, temp_in, temp_out, humidity_in, humidity_out, description, DATE_FORMAT(`created_at`, '%d/%m/%Y'), DATE_FORMAT(`created_at`, '%H:%i:%s'), id FROM temperature temp ORDER BY created_at ASC LIMIT 1000 "
         self.cursor.execute(queue)
         result = self.cursor.fetchall()
         return result
@@ -153,6 +151,8 @@ class Model:
         self.conn.commit()
         print("tbl_temperature: ID = "+str(self.cursor.lastrowid))
         return self.cursor.lastrowid
+
+
 
 #View
 class View(Tk):
@@ -223,7 +223,7 @@ class View(Tk):
             id = item[9]
             date = item[7]
             time = item[8]
-            self.tbl.insert(parent='', index='end', iid=id, text='',
+            self.tbl.insert(parent='', index=0, iid=id, text='',
                             values=(date, time, dataItem['name'], dataItem['win']
                                     , dataItem['temp']['in'], dataItem['temp']['out']
                                     , dataItem['humidity']['in'], dataItem['humidity']['out']
