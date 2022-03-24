@@ -1,5 +1,12 @@
 from classes.model import Model
+from classes.view import View
+from classes.controller import Controller
 
-data = Model()
-mTemp = data.findDataTemp()
-print(mTemp)
+item1 = {
+   "name": "name1",
+   "url": "url1"
+}
+
+model = Model()
+controller = Controller()
+view = View(model, controller)
