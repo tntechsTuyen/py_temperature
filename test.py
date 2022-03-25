@@ -16,25 +16,26 @@ currentTime = datetime.datetime.now()
 mTime = currentTime.strftime("%Y/%m/%d %H:%M:%S.%f")
 mDate = currentTime.strftime("%Y%m%d")
 
-_fileName = "common/"+mDate+"1.json"
+_fileName = mDate+"1.json"
 
-# filename.jsonl is the name of the file
-# with jsonlines.open(_fileName, "a") as writer:   # for writing
-#     writer.write(object1)
-#     writer.write(object2)
+with jsonlines.open(_fileName, "a") as writer:   # for writing
+    writer.write(object1)
+    writer.write(object2)
 
 with jsonlines.open(_fileName) as reader:      # for reading
     try:
-        print(reader)
+        print(list(reader))
     except OSError as e:
         print("Error: "+str(e))
-    # for obj in reader:
-    #     print(obj)
-    #     print(obj['name'])
+    for obj in reader:
+        print(obj)
 
 # if os.path.isdir("data"):
 #     print("OK")
 # else:
 #     os.mkdir("data")
 
-
+# if os.path.isfile("sop1.docx"):
+#     print("OK")
+# else:
+#     os.mkdir("data")

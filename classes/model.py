@@ -1,25 +1,44 @@
-import mysql.connector
+import jsonlines
+import datetime
+import os
 
-class Model:
-    def __init__(self):
-        self.conn = mysql.connector.connect(
-          host="localhost",
-          user="root",
-          password="12345678",
-          database="temperature"
-        )
-        self.cursor = self.conn.cursor()
+class Model():
+    def checkDir(self):
+        if os.path.isdir("data"):
+            print("")
+        else:
+            os.mkdir("data")
 
-    def findDataTemp(self):
-        queue = "SELECT name, win, temp_in, temp_out, humidity_in, humidity_out, description, DATE_FORMAT(`created_at`, '%d/%m/%Y'), DATE_FORMAT(`created_at`, '%H:%i:%s'), id FROM temperature temp ORDER BY created_at ASC LIMIT 1000 "
-        self.cursor.execute(queue)
-        result = self.cursor.fetchall()
-        return result
+    def checkPath(self, _fileName):
+        self.checkDir()
 
-    def insertTemperature(self ,param):
-        queue = "INSERT INTO `temperature`(`id_factory`, `name`, `win`, `temp_in`, `temp_out`, `humidity_in`, `humidity_out`, `description`) " \
-                "VALUES (%s, %s, %s, %s, %s, %s, %s, %s)"
-        self.cursor.execute(queue, param)
-        self.conn.commit()
-        print("tbl_temperature: ID = "+str(self.cursor.lastrowid))
-        return self.cursor.lastrowid
+        if _fileName == None:
+            currentTime = datetime.datetime.now()
+            mDate = currentTime.strftime("%Y%m")
+            _fileName = mDate
+
+        if os.path.isfile(_fileName):
+            print("")
+        else:
+            with open(_fileName, 'w'): pass
+        return _fileName
+
+    def readData(self, _fileName):
+        currentTime = datetime.datetime.now()
+        mDate = currentTime.strftime("%Y%m")
+        if _fileName == None:
+            _fileName = "data/" + mDate+".logs"
+
+        self.checkPath(_fileName)
+        with jsonlines.open(_fileName) as reader:
+            return list(reader)
+
+    def writeData(self, _fileName, _data):
+        currentTime = datetime.datetime.now()
+        mDate = currentTime.strftime("%Y%m")
+        if _fileName == None:
+            _fileName = "data/" + mDate + ".logs"
+        _data['created_at'] = currentTime.strftime("%Y/%m/%d %H:%M:%S.%f")
+        self.checkPath(_fileName)
+        with jsonlines.open(_fileName, "a") as writer:  # for writing
+            writer.write(_data)

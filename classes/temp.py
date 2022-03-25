@@ -85,6 +85,18 @@ class Temp():
             message = "Bạn chưa nhập tên nhà kho"
         return {"check": check, "message": message}
 
+    def getLog(self):
+        return {
+            "name": self.name,
+            "win": self.win,
+            "weather": self.weather,
+            "temp_in": self.tempIn,
+            "temp_out": self.tempOut,
+            "humidity_in": self.humidityIn,
+            "humidity_out": self.humidityOut,
+
+        }
+
     def getData(self):
         return {
             "name": self.name,
