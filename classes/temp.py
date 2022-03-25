@@ -19,51 +19,71 @@ class Temp():
         self.humidityOut = data[5]
         self.weather = data[6]
 
+    @classmethod
+    # cập nhật tên nhà kho
     def setName(self, mName):
         self.name = mName
 
+    @classmethod
+    # Cập nhật cấp độ gió
     def setWin(self, mWin):
         self.win = int(mWin)
 
+    @classmethod
+    # Cập nhật thời tiết
     def setWeather(self, mWeather):
         self.weather = mWeather
 
     def setCheckWeather(self, mCheck):
         self.checkWeather = mCheck
 
+    @classmethod
+    # Cập nhật nhiệt độ trong nhà kho
     def setTempIn(self, mTempIn):
         if len(mTempIn.strip()) == 0:
             self.tempIn = 0
         else:
             self.tempIn = float(mTempIn)
 
+    @classmethod
+    # Cập nhật nhiệt độ ngoài nhà kho
     def setTempOut(self, mTempOut):
         if len(mTempOut.strip()) == 0:
             self.tempOut = 0
         else:
             self.tempOut = float(mTempOut)
 
+    @classmethod
+    # Cập nhật độ ẩm trong nhà kho
     def setHumidityIn(self, mHumidityIn):
         if len(mHumidityIn.strip()) == 0:
             self.humidityIn = 0
         else:
             self.humidityIn = float(mHumidityIn)
 
+    @classmethod
+    # Cập nhật độ ẩm ngoài nhà kho
     def setHumidityOut(self, mHumidityOut):
         if len(mHumidityOut.strip()) == 0:
             self.humidityOut = 0
         else:
             self.humidityOut = float(mHumidityOut)
 
+    @classmethod
+    # Tính toán độ ẩm cực đại
     def calHumidityMax(self, t):
         return 5.018 + (0.32321 * t) + (8.1847 * 0.001 * t ** 2) + (3.1243 * 0.0001 * t ** 3)
 
     def calAH(self, h1, h2):
         return h1 * h2
 
+    @classmethod
+    # Tính toán nhiệt độ điểm sương
     def calTempPoint(self, t, h):
         return t - (100 - h) / 5
 
+    @classmethod
+    # Lấy ra biện pháp đối với dữ liệu đầu vào
     def getSolution(self):
         data = self.getData()
         message = "Nhà kho không đủ điều kiện thông gió"
@@ -77,6 +97,8 @@ class Temp():
                     message = "Nhà kho đủ điều kiện thông gió"
         return message
 
+    @classmethod
+    # Kiểm tra dữ liệu đầu vào
     def checkData(self):
         message = ""
         check = 1
