@@ -1,15 +1,14 @@
 from tkinter import *
 from tkinter.ttk import *
 from tkinter import messagebox
-from dotenv import dotenv_values
 import jsonlines
 import datetime
 import os
 
-import mysql.connector
-
 #Object Temp (Đối tượng nhiệt độ kho)
 class ObjectTemp():
+    @classmethod
+    # Constructor: Phương thức khời tạo đối tượng
     def __init__(self):
         self.name = ""
         self.win = 0
@@ -20,61 +19,85 @@ class ObjectTemp():
         self.humidityIn = 0
         self.humidityOut = 0
 
-    def setData(self, data):
-        self.name = data[0]
-        self.win = data[1]
+    @classmethod
+    # cập nhật dữ liệu
+    def setData(self, _data):
+        self.name = _data['name']
+        self.win = _data['win']
         self.checkWeather = 1
-        self.tempIn = data[2]
-        self.tempOut = data[3]
-        self.humidityIn = data[4]
-        self.humidityOut = data[5]
-        self.weather = data[6]
+        self.tempIn = _data["temp_in"]
+        self.tempOut = _data["temp_out"]
+        self.humidityIn = _data['humidity_in']
+        self.humidityOut = _data['humidity_in']
+        self.weather = _data['weather']
 
+    @classmethod
+    # cập nhật tên nhà kho
     def setName(self, mName):
         self.name = mName
 
+    @classmethod
+    # Cập nhật cấp độ gió
     def setWin(self, mWin):
         self.win = int(mWin)
 
+    @classmethod
+    # Cập nhật thời tiết
     def setWeather(self, mWeather):
         self.weather = mWeather
 
     def setCheckWeather(self, mCheck):
         self.checkWeather = mCheck
 
+    @classmethod
+    # Cập nhật nhiệt độ trong nhà kho
     def setTempIn(self, mTempIn):
         if len(mTempIn.strip()) == 0:
             self.tempIn = 0
         else:
             self.tempIn = float(mTempIn)
 
+    @classmethod
+    # Cập nhật nhiệt độ ngoài nhà kho
     def setTempOut(self, mTempOut):
         if len(mTempOut.strip()) == 0:
             self.tempOut = 0
         else:
             self.tempOut = float(mTempOut)
 
+    @classmethod
+    # Cập nhật độ ẩm trong nhà kho
     def setHumidityIn(self, mHumidityIn):
         if len(mHumidityIn.strip()) == 0:
             self.humidityIn = 0
         else:
             self.humidityIn = float(mHumidityIn)
 
+    @classmethod
+    # Cập nhật độ ẩm ngoài nhà kho
     def setHumidityOut(self, mHumidityOut):
         if len(mHumidityOut.strip()) == 0:
             self.humidityOut = 0
         else:
             self.humidityOut = float(mHumidityOut)
 
+    @classmethod
+    # Tính toán độ ẩm cực đại
     def calHumidityMax(self, t):
         return 5.018 + (0.32321 * t) + (8.1847 * 0.001 * t ** 2) + (3.1243 * 0.0001 * t ** 3)
 
+    @classmethod
+    # Tính toán độ ẩm tuyệt đối
     def calAH(self, h1, h2):
         return h1 * h2
 
+    @classmethod
+    # Tính toán nhiệt độ điểm sương
     def calTempPoint(self, t, h):
         return t - (100 - h) / 5
 
+    @classmethod
+    # Lấy ra biện pháp đối với dữ liệu đầu vào
     def getSolution(self):
         data = self.getData()
         message = "Nhà kho không đủ điều kiện thông gió"
@@ -88,71 +111,119 @@ class ObjectTemp():
                     message = "Nhà kho đủ điều kiện thông gió"
         return message
 
+    @classmethod
+    # Kiểm tra dữ liệu đầu vào
     def checkData(self):
         message = ""
         check = 1
         if len(self.name.strip()) == 0:
             check = 0
             message = "Bạn chưa nhập tên nhà kho"
+        elif self.tempIn <= 0 or self.tempOut <= 0:
+            check = 0
+            message = "Nhiệt độ không hợp lệ"
+        elif self.humidityIn <= 0 or self.humidityOut <= 0:
+            check = 0
+            message = "Độ ẩm không hợp lệ"
         return {"check": check, "message": message}
 
-    def getData(self):
+    @classmethod
+    # Dữ liệu lưu file
+    def getLogs(self):
         return {
             "name": self.name,
             "win": self.win,
-            "weather": {
+            "weather": self.weather,
+            "temp_in": self.tempIn,
+            "temp_out": self.tempOut,
+            "humidity_in": self.humidityIn,
+            "humidity_out": self.humidityOut
+        }
+
+    @classmethod
+    # Dữ liệu hiển thị
+    def getData(self):
+        return {
+            "name": self.name, # Dữ liệu tên nhà kho
+            "win": self.win, # Dữ liệu gió
+            "weather": { # Dữ liệu thời tiết
                 "text": self.weather,
                 "check": self.checkWeather
             },
-            "temp": {
+            "temp": { # Dữ liệu nhiệt độ
                 "in": self.tempIn,
                 "out": self.tempOut
             },
-            "humidity": {
+            "humidity": { # Dữ liệu độ ẩm
                 "in": self.humidityIn,
                 "out": self.humidityOut
             },
-            "humidity_max":{
+            "humidity_max": { # Dữ liệu độ ẩm cực đại
                 "in": "%.2f" % self.calHumidityMax(self.tempIn),
                 "out": "%.2f" % self.calHumidityMax(self.tempOut)
             },
-            "ah":{
+            "ah": { # Dữ liệu độ ẩm tuyệt đối
                 "in": "%.2f" % self.calAH(self.calHumidityMax(self.tempIn), self.humidityIn),
                 "out": "%.2f" % self.calAH(self.calHumidityMax(self.tempOut), self.humidityOut)
             },
-            "temp_point":{
+            "temp_point": { # Dữ liệu nhiệt độ điểm sương
                 "in": "%.2f" % self.calTempPoint(self.tempIn, self.humidityIn),
-                "out": "%.2f" % self.calTempPoint(self.tempOut, self.humidityOut),
+                "out": "%.2f" % self.calTempPoint(self.tempOut, self.humidityOut)
             }
         }
 
 #Database
-class Model:
-    def __init__(self):
-        config = dotenv_values(".env")
-        self.conn = mysql.connector.connect(
-          host=config['DATABASE.HOST'],
-          user=config['DATABASE.USER'],
-          password=config['DATABASE.PASS'],
-          database=config['DATABASE.NAME']
-        )
-        self.cursor = self.conn.cursor()
+class Model(object):
+   @classmethod
+   # Kiểm tra đã có thư mục data chưa
+   def checkDir(self):
+      if os.path.isdir("data"):
+         print("")
+      else:
+         os.mkdir("data")
 
-    def findDataTemp(self):
-        queue = "SELECT name, win, temp_in, temp_out, humidity_in, humidity_out, description, DATE_FORMAT(`created_at`, '%d/%m/%Y'), DATE_FORMAT(`created_at`, '%H:%i:%s'), id FROM temperature temp ORDER BY created_at ASC LIMIT 1000 "
-        self.cursor.execute(queue)
-        result = self.cursor.fetchall()
-        return result
+   @classmethod
+   # Kiểm tra có file dữ liệu không
+   def checkPath(self, _fileName):
+      self.checkDir()
 
-    def insertTemperature(self ,param):
-        queue = "INSERT INTO `temperature`(`id_factory`, `name`, `win`, `temp_in`, `temp_out`, `humidity_in`, `humidity_out`, `description`) " \
-                "VALUES (%s, %s, %s, %s, %s, %s, %s, %s)"
-        self.cursor.execute(queue, param)
-        self.conn.commit()
-        print("tbl_temperature: ID = "+str(self.cursor.lastrowid))
-        return self.cursor.lastrowid
+      if _fileName == None:
+         currentTime = datetime.datetime.now()
+         mDate = currentTime.strftime("%Y%m")
+         _fileName = mDate
 
+      if os.path.isfile(_fileName):
+         print("")
+      else:
+         with open(_fileName, 'w'):
+            pass
+      return _fileName
 
+   @classmethod
+   # Đọc dữ liệu từ file
+   def readData(self, _fileName):
+      currentTime = datetime.datetime.now()  # Lấy ngày hiện tại
+      mDate = currentTime.strftime("%Y%m")  #
+      if _fileName == None:
+         _fileName = "data/" + mDate + ".logs"
+
+      self.checkPath(_fileName)
+      with jsonlines.open(_fileName) as reader:
+         return list(reader)
+
+   @classmethod
+   # Ghi dữ liệu ra file
+   def writeData(self, _fileName, _data):
+      currentTime = datetime.datetime.now()
+      mDate = currentTime.strftime("%Y%m")
+      print(_data)
+      if _fileName == None:
+         _fileName = "data/" + mDate + ".logs"
+      _data['created_at'] = currentTime.strftime("%Y/%m/%d %H:%M:%S.%f")
+      self.checkPath(_fileName)
+      with jsonlines.open(_fileName, "a") as writer:  # for writing
+         writer.write(_data)
+      return True
 
 #View
 class View(Tk):
@@ -215,14 +286,16 @@ class View(Tk):
 
     def loadDataStatistic(self):
         self.tbl.delete(*self.tbl.get_children()) #Xóa nội dung cũ trong bảng
-        data = self.model.findDataTemp() #Lấy ra danh sách nhiệt độ độ ẩm
+        data = self.model.readData(None) #Lấy ra danh sách nhiệt độ độ ẩm
+        id = 0;
         for item in data: #Truy xuất dữ liệu và hiển thị ra bảng
             tmpTemp = ObjectTemp()
             tmpTemp.setData(item)
             dataItem = tmpTemp.getData()
-            id = item[9]
-            date = item[7]
-            time = item[8]
+            id += 1
+            dateObj = datetime.datetime.strptime(item['created_at'], "%Y/%m/%d %H:%M:%S.%f")
+            date = dateObj.strftime("%Y/%m/%d")
+            time = dateObj.strftime("%H:%M:%S")
             self.tbl.insert(parent='', index=0, iid=id, text='',
                             values=(date, time, dataItem['name'], dataItem['win']
                                     , dataItem['temp']['in'], dataItem['temp']['out']
@@ -260,7 +333,6 @@ class View(Tk):
 
         self.objTemp.setWeather(valWeather)
         self.objTemp.setName(self.etFactoryName.get())
-        self.objTemp.setIdFactory(1)
         self.objTemp.setTempIn(self.etTempIn.get())
         self.objTemp.setTempOut(self.etTempOut.get())
         self.objTemp.setHumidityIn(self.etHumidityIn.get())
@@ -270,11 +342,12 @@ class View(Tk):
     def callbackBtnSave(self):
         data = self.objTemp.getData()
         check = self.objTemp.checkData()
+        print(self.objTemp.getLogs())
         if check['check'] == 0:
             messagebox.showwarning("Cảnh báo", 'Bạn chưa nhập thông tin '+check["message"])
             return
 
-        self.model.insertTemperature((data['id_factory'], data['name'], data['win'], data['temp']['in'], data['temp']['out'], data['humidity']['in'], data['humidity']['out'], data['weather']['text']))
+        self.model.writeData(None, self.objTemp.getLogs())
         self.loadDataStatistic()
         messagebox.showinfo("Thông báo", "Thêm dữ liệu thành công")
         return

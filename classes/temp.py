@@ -1,4 +1,6 @@
 class Temp():
+    @classmethod
+    # Constructor: Phương thức khời tạo đối tượng
     def __init__(self):
         self.name = ""
         self.win = 0
@@ -9,15 +11,17 @@ class Temp():
         self.humidityIn = 0
         self.humidityOut = 0
 
-    def setData(self, data):
-        self.name = data[0]
-        self.win = data[1]
+    @classmethod
+    # cập nhật dữ liệu
+    def setData(self, _data):
+        self.name = _data['name']
+        self.win = _data['win']
         self.checkWeather = 1
-        self.tempIn = data[2]
-        self.tempOut = data[3]
-        self.humidityIn = data[4]
-        self.humidityOut = data[5]
-        self.weather = data[6]
+        self.tempIn = _data["temp_in"]
+        self.tempOut = _data["temp_out"]
+        self.humidityIn = _data['humidity_in']
+        self.humidityOut = _data['humidity_in']
+        self.weather = _data['weather']
 
     @classmethod
     # cập nhật tên nhà kho
@@ -74,6 +78,8 @@ class Temp():
     def calHumidityMax(self, t):
         return 5.018 + (0.32321 * t) + (8.1847 * 0.001 * t ** 2) + (3.1243 * 0.0001 * t ** 3)
 
+    @classmethod
+    # Tính toán độ ẩm tuyệt đối
     def calAH(self, h1, h2):
         return h1 * h2
 
@@ -105,8 +111,17 @@ class Temp():
         if len(self.name.strip()) == 0:
             check = 0
             message = "Bạn chưa nhập tên nhà kho"
+        elif self.tempIn <= 0 or self.tempOut <= 0:
+            check = 0
+            message = "Nhiệt độ không hợp lệ"
+        elif self.humidityIn <= 0 or self.humidityOut <= 0:
+            check = 0
+            message = "Độ ẩm không hợp lệ"
+
         return {"check": check, "message": message}
 
+    @classmethod
+    # Dữ liệu lưu file
     def getLog(self):
         return {
             "name": self.name,
@@ -115,10 +130,11 @@ class Temp():
             "temp_in": self.tempIn,
             "temp_out": self.tempOut,
             "humidity_in": self.humidityIn,
-            "humidity_out": self.humidityOut,
-
+            "humidity_out": self.humidityOut
         }
 
+    @classmethod
+    # Dữ liệu hiển thị
     def getData(self):
         return {
             "name": self.name,
