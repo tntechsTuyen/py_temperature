@@ -119,10 +119,10 @@ class ObjectTemp():
         if len(self.name.strip()) == 0:
             check = 0
             message = "Bạn chưa nhập tên nhà kho"
-        elif self.tempIn <= 0 or self.tempOut <= 0:
+        if self.tempIn <= 0 or self.tempOut <= 0:
             check = 0
             message = "Nhiệt độ không hợp lệ"
-        elif self.humidityIn <= 0 or self.humidityOut <= 0:
+        if self.humidityIn <= 0 or self.humidityOut <= 0:
             check = 0
             message = "Độ ẩm không hợp lệ"
         return {"check": check, "message": message}
@@ -225,7 +225,6 @@ class Model(object):
          writer.write(_data)
       return True
 
-#View
 class View(Tk):
     def __init__(self):
         super().__init__()
@@ -245,12 +244,13 @@ class View(Tk):
 
     def createTabStatistic(self):
         style = Style()
-        style.configure("Treeview", fieldbackground='red')
-        style.configure("Treeview.Heading", foreground='black', font=('Arial Bold', 8))
-        self.tbl = Treeview(self.tabStatistic)
+        style.configure("Treeview", fieldbackground='red') # Thiết lập hiển thị cho bảng
+        style.configure("Treeview.Heading", foreground='black', font=('Arial Bold', 8)) # Thiết lập hiển thị tiêu đề của bảng
+        self.tbl = Treeview(self.tabStatistic) # Khởi tạo bảng theo Tab
         self.tbl.pack(fill='both', expand=True)
-        self.tbl['columns'] = ('date', "time", "name", "win", 'Tt', 'Tn', "RHt", "RHn", "AHt", "AHn", "Tdpt", "Tdpn", "weather", "solution")
+        self.tbl['columns'] = ('date', "time", "name", "win", 'Tt', 'Tn', "RHt", "RHn", "AHt", "AHn", "Tdpt", "Tdpn", "weather", "solution") # Khai báo id các cột trong bảng
 
+        # Thiết lập cột cho bảng
         self.tbl.column("#0", width=0, stretch=NO)
         self.tbl.column("date", anchor=CENTER, width=80)
         self.tbl.column("time", anchor=CENTER, width=60)
@@ -282,8 +282,10 @@ class View(Tk):
         self.tbl.heading("Tdpn", text="Nhiệt độ điểm sương ngoài", anchor=CENTER)
         self.tbl.heading("weather", text="Thời tiết", anchor=CENTER)
         self.tbl.heading("solution", text="Biện pháp", anchor=CENTER)
-        self.loadDataStatistic()
+        # self.loadDataStatistic()
 
+    @classmethod
+    # Lấy dữ liệu logs và hiển thị dữ liệu
     def loadDataStatistic(self):
         self.tbl.delete(*self.tbl.get_children()) #Xóa nội dung cũ trong bảng
         data = self.model.readData(None) #Lấy ra danh sách nhiệt độ độ ẩm
@@ -304,14 +306,16 @@ class View(Tk):
                                     , dataItem['temp_point']['in'], dataItem['temp_point']['out']
                                     , dataItem['weather']['text'], tmpTemp.getSolution()))
 
+    @classmethod
+    # Sự kiện khi click vào nút <Kết quả>
     def callbackBtnResult(self):
-        self.objTemp = ObjectTemp()
-        self.getDataView()
-        data = self.objTemp.getData()
-        self.lbResult.config(state=NORMAL)
-        self.lbResult.delete(1.0, "end")
-        self.lbResult.insert(END, self.objTemp.getSolution())
-        self.lbResult.config(state=DISABLED)
+        self.objTemp = ObjectTemp() # Khởi tạo đối tượng nhiệt độ
+        self.getDataView() # Lấy dữ liệu từ giao diện vào đối tượng
+        data = self.objTemp.getData() # Tính toán và lấy dữ liệu nhiệt độ, độ ẩm
+        self.lbResult.config(state=NORMAL) # Cho phép Text kết quả có thể sửa đổi thông tin
+        self.lbResult.delete(1.0, "end") # Xóa ký tự trong Text
+        self.lbResult.insert(END, self.objTemp.getSolution()) # Thêm (giải pháp) vào ô Text
+        self.lbResult.config(state=DISABLED) # Không cho phép sửa thông tin của ô Text
 
         self.lbResTempPointIn.config(text=data['temp_point']['in'])
         self.lbResTempPointOut.config(text=data['temp_point']['out'])
@@ -320,6 +324,8 @@ class View(Tk):
         self.lbResHumidityMaxIn.config(text=data['humidity_max']['in'])
         self.lbResHumidityMaxOut.config(text=data['humidity_max']['out'])
 
+    @classmethod
+    # Lấy dữ liệu từ màn hình ứng dụng
     def getDataView(self):
         valWeather = ""
         if self.cbWeather1.instate(['selected']) :
@@ -339,12 +345,12 @@ class View(Tk):
         self.objTemp.setHumidityOut(self.etHumidityOut.get())
         self.objTemp.setWin(self.valWinLevel.get())
 
+    @classmethod
+    # Sự kiện khi click vào nút Lưu
     def callbackBtnSave(self):
-        data = self.objTemp.getData()
         check = self.objTemp.checkData()
-        print(self.objTemp.getLogs())
         if check['check'] == 0:
-            messagebox.showwarning("Cảnh báo", 'Bạn chưa nhập thông tin '+check["message"])
+            messagebox.showwarning("Cảnh báo", 'Bạn hãy kiểm tra lại thông tin '+check["message"])
             return
 
         self.model.writeData(None, self.objTemp.getLogs())
@@ -352,6 +358,8 @@ class View(Tk):
         messagebox.showinfo("Thông báo", "Thêm dữ liệu thành công")
         return
 
+    @classmethod
+    # Khởi tạo tab nhập dữ liệu
     def createTabTemp(self):
         #Khởi tạo View
         self.lbFactoryName = Label(self.tabTemp, text="Nhà kho số")
