@@ -1,0 +1,71 @@
+{
+    "status": "OK",
+    "code": "SUCCESS",
+    "message": "OK",
+    "result": {
+        "1": {
+            "description": "",
+            "id": 1,
+            "id_parent": "//0//",
+            "url": "",
+            "content_ko": "User",
+            "data": {}
+        },
+        "2": {
+            "description": "",
+            "id": 2,
+            "id_parent": "//1//",
+            "url": "",
+            "content_ko": "경매 중",
+            "data": {}
+        },
+        "3": {
+            "description": "",
+            "id": 3,
+            "id_parent": "//1//",
+            "url": "",
+            "content_ko": "경매 준비",
+            "data": {}
+        },
+        "4": {
+            "description": "",
+            "id": 4,
+            "id_parent": "//1//",
+            "url": "",
+            "content_ko": "경매종료",
+            "data": {}
+        },
+        "5": {
+            "description": "",
+            "id": 5,
+            "id_parent": "//1//",
+            "url": "",
+            "content_ko": "더 보기",
+            "data": {}
+        },
+        "6": {
+            "description": "",
+            "id": 6,
+            "id_parent": "//1//2//",
+            "url": "",
+            "content_ko": "Womment",
+            "data": {}
+        },
+        "7": {
+            "description": "",
+            "id": 7,
+            "id_parent": "//1//2//",
+            "url": "",
+            "content_ko": "Kids",
+            "data": {}
+        },
+        "8": {
+            "description": "",
+            "id": 8,
+            "id_parent": "//1//2//",
+            "url": "",
+            "content_ko": "Man",
+            "data": {}
+        }
+    }
+}
