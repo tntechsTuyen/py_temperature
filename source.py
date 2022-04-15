@@ -308,6 +308,11 @@ class View(Tk):
     #Sự kiện khi ấn vào nút kết quả
     def callbackBtnResult(self):
         self.getDataView() #Lấy dữ liệu từ màn hình
+        check = self.objTemp.checkData()  # Kiểm tra thông tin của dữ liệu
+        if check['check'] == 0:
+            messagebox.showwarning("Cảnh báo", check["message"])  # Cảnh báo thiếu thông tin
+            return
+
         data = self.objTemp.getData() #Tính toán dữ liệu nhiệt độ độ ẩm
         self.lbResult.config(state=NORMAL) # Cho phép sửa nội dung trên ô hiển thị kết quả
         self.lbResult.delete(1.0, "end") # Xóa toàn bộ ký tự trong ô hiển thị kết quả
@@ -351,7 +356,7 @@ class View(Tk):
         self.getDataView() #Lấy dữ liệu từ dao diện
         check = self.objTemp.checkData() #Kiểm tra thông tin của dữ liệu
         if check['check'] == 0:
-            messagebox.showwarning("Cảnh báo", 'Bạn chưa nhập thông tin '+check["message"]) #Cảnh báo thiếu thông tin
+            messagebox.showwarning("Cảnh báo", check["message"]) #Cảnh báo thiếu thông tin
             return
 
         self.model.writeData(None, self.objTemp.getLogs()) #Ghi dữ liệu vào file
@@ -372,9 +377,20 @@ class View(Tk):
 
         ## Checkbox (Thời tiết)
         self.frameWeather = Frame(self.tabTemp)
-        self.cbWeather1 = Checkbutton(self.frameWeather, text="Sương mù", onvalue=1)
-        self.cbWeather2 = Checkbutton(self.frameWeather, text="Mưa", onvalue=2)
-        self.cbWeather3 = Checkbutton(self.frameWeather, text="Nắng", onvalue=3)
+        checkVal1 = IntVar()
+        checkVal2 = IntVar()
+        checkVal3 = IntVar()
+
+        checkVal1.set(0)
+        checkVal2.set(0)
+        checkVal3.set(0)
+
+        self.cbWeather1 = Checkbutton(self.frameWeather, text="Sương mù", onvalue=1, variable = checkVal1)
+        self.cbWeather2 = Checkbutton(self.frameWeather, text="Mưa", onvalue=1, variable = checkVal2)
+        self.cbWeather3 = Checkbutton(self.frameWeather, text="Nắng", onvalue=1, variable = checkVal3)
+        self.cbWeather1.var = checkVal1
+        self.cbWeather2.var = checkVal2
+        self.cbWeather3.var = checkVal3
 
         self.lbIn = Label(self.tabTemp, text="TRONG KHO", font='Arial 15 bold', borderwidth=1, relief="solid")
         self.lbOut = Label(self.tabTemp, text="NGOÀI KHO", font='Arial 15 bold', borderwidth=1, relief="solid")
@@ -461,4 +477,5 @@ view.mainloop()
 
 # pyinstaller --onefile temperature\common\application.py
 # pyinstaller --onefile --windowed application.py --path=C:\Users\emtuy\AppData\Local\Programs\Python\Python310\Lib\site-packages
-# pyinstaller --onefile --windowed application.py --path=C:\Users\User01\AppData\Local\Programs\Python\Python310\Lib\site-packages
+# pyinstaller --onefile --windowed --icon=icon.ico source.py --path=C:\Users\User01\AppData\Local\Programs\Python\Python310\Lib\site-packages
+# pyinstaller --onefile --windowed --icon=icon.ico source.py --path=C:\Users\User01\AppData\Local\Programs\Python\Python310-32\Lib\site-packages
